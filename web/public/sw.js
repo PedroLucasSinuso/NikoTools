@@ -1,5 +1,5 @@
 // Cache-first pro que quase não muda (leitor de OCR, idioma, JS/CSS com hash), rede-primeiro pro resto.
-const CACHE = 'estoque-facil-v1'
+const CACHE = 'estoque-facil-v2'
 const PESADOS = /\/(tesseract|tessdata|assets)\//
 
 self.addEventListener('install', () => self.skipWaiting())
@@ -18,7 +18,8 @@ self.addEventListener('fetch', (e) => {
       const hit = await cache.match(e.request)
       if (cacheFirst && hit) return hit
       try {
-        const res = await fetch(e.request)
+        // páginas e dados sempre revalidam (o cache HTTP do host segura a versão antiga por minutos)
+        const res = cacheFirst ? await fetch(e.request) : await fetch(url.href, { cache: 'no-cache' })
         if (res.ok) cache.put(e.request, res.clone())
         return res
       } catch (err) {
