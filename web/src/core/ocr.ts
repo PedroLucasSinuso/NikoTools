@@ -20,7 +20,26 @@ export interface Progresso {
 
 const absoluto = (caminho: string) => new URL(import.meta.env.BASE_URL + caminho, document.baseURI).href
 
-export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void): Promise<LinhaOCR[][]> {
+export interface LeituraPdf {
+  paginas: LinhaOCR[][]
+  /** URLs (blob:) das páginas originais, pra comparar com a planilha. Quem usa deve revogar. */
+  imagens: string[]
+}
+
+const LARGURA_PREVIA = 1000
+
+function previa(origem: HTMLCanvasElement): Promise<string> {
+  const escala = Math.min(1, LARGURA_PREVIA / origem.width)
+  const c = document.createElement('canvas')
+  c.width = Math.round(origem.width * escala)
+  c.height = Math.round(origem.height * escala)
+  c.getContext('2d')!.drawImage(origem, 0, 0, c.width, c.height)
+  return new Promise((ok, falha) =>
+    c.toBlob((b) => (b ? ok(URL.createObjectURL(b)) : falha(new Error('sem prévia'))), 'image/jpeg', 0.85),
+  )
+}
+
+export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void): Promise<LeituraPdf> {
   onProgresso({ etapa: 'preparando', pagina: 0, total: 0, fracao: 0 })
   const tarefa = pdfjs.getDocument({ data: new Uint8Array(await arquivo.arrayBuffer()) })
   let pdf: pdfjs.PDFDocumentProxy
@@ -46,6 +65,7 @@ export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void):
     // bloco único: o modo automático divide a página em colunas e separa o código do resto da linha
     await worker.setParameters({ preserve_interword_spaces: '1', tessedit_pageseg_mode: PSM.SINGLE_BLOCK })
     const paginas: LinhaOCR[][] = []
+    const imagens: string[] = []
     for (let n = 1; n <= pdf.numPages; n++) {
       paginaAtual = n
       onProgresso({ etapa: 'lendo', pagina: n, total: pdf.numPages, fracao: (n - 1) / pdf.numPages })
@@ -55,6 +75,7 @@ export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void):
       canvas.width = Math.ceil(viewport.width)
       canvas.height = Math.ceil(viewport.height)
       await pagina.render({ canvas, viewport }).promise
+      imagens.push(await previa(canvas))
       const ctx = canvas.getContext('2d', { willReadFrequently: true })!
       const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height)
       limpaPagina(pixels)
@@ -64,7 +85,7 @@ export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void):
       canvas.width = canvas.height = 0 // libera memória
     }
     onProgresso({ etapa: 'lendo', pagina: pdf.numPages, total: pdf.numPages, fracao: 1 })
-    return paginas
+    return { paginas, imagens }
   } finally {
     await worker.terminate()
     await tarefa.destroy()

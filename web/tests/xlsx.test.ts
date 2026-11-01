@@ -5,7 +5,7 @@ import { interpreta } from '../src/core/parser'
 import { PADRAO } from '../src/core/settings'
 import { geraXlsx } from '../src/core/xlsx'
 import { nomeDoArquivo } from '../src/core/xlsx-nome'
-import { linkWhatsApp, normalizaNumero } from '../src/core/whatsapp'
+import { CONTEXTO_EXEMPLO, formataNumero, linkWhatsApp, montaMensagem, normalizaNumero } from '../src/core/whatsapp'
 
 const rel = () => interpreta(structuredClone(fixture))
 
@@ -41,5 +41,13 @@ describe('utilidades', () => {
     expect(normalizaNumero('(11) 99999-8888')).toBe('5511999998888')
     expect(normalizaNumero('+55 11 99999-8888')).toBe('5511999998888')
     expect(linkWhatsApp('', 'oi')).toBe('https://wa.me/?text=oi')
+  })
+  it('formata o número', () => {
+    expect(formataNumero('11999998888')).toBe('+55 (11) 99999-8888')
+    expect(formataNumero('1199')).toBeNull()
+  })
+  it('monta a mensagem com variáveis e quebras de linha', () => {
+    const m = montaMensagem('Estoque {fornecedor}\n\n\n{produtos} itens, total {total}  {nada}', CONTEXTO_EXEMPLO)
+    expect(m).toBe('Estoque DISTRIBUIDORA EXEMPLO LTDA\n\n40 itens, total 863 {nada}')
   })
 })
