@@ -1,0 +1,36 @@
+name: Gerar EstoqueFacil.exe
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q tests
+      - name: Baixa os modelos de OCR pra dentro do pacote
+        run: python tools/baixar_modelos.py
+      - run: pyinstaller EstoqueFacil.spec --noconfirm
+      - name: Monta o zip
+        shell: pwsh
+        run: |
+          Copy-Item LEIA-ME.txt dist/EstoqueFacil/
+          Compress-Archive -Path dist/EstoqueFacil -DestinationPath EstoqueFacil.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EstoqueFacil
+          path: EstoqueFacil.zip
+      - name: Anexa ao release (quando for tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: EstoqueFacil.zip

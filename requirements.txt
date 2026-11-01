@@ -1,0 +1,7 @@
+rapidocr==3.10.0
+onnxruntime
+numpy
+pymupdf
+openpyxl
+pywhatkit==5.4
+pywin32; sys_platform == "win32"

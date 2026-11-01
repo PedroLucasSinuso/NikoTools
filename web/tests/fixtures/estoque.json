@@ -1,0 +1,302 @@
+[
+ [
+  {
+   "texto": "Data: 30/10/2026 12:59:46",
+   "confianca": 81.1026611328125
+  },
+  {
+   "texto": "Página : 0001",
+   "confianca": 93.42276763916016
+  },
+  {
+   "texto": "01 - LOJA",
+   "confianca": 94.82572174072266
+  },
+  {
+   "texto": "Relatório de Saldos de Estoque Fornecedor (000001 - DISTRIBUIDORA EXEMPLO LTDA)",
+   "confianca": 95.23652648925781
+  },
+  {
+   "texto": "Produto      Descrição do Produto                                                       UN        Quant                         Mínimo     Max EAN                         Saldo",
+   "confianca": 96.22509002685547
+  },
+  {
+   "texto": "Seção: 0013-ESPUMANTE NACIONAL",
+   "confianca": 91.30994415283203
+  },
+  {
+   "texto": "Sub Seção : 0001 - ACOUGUE",
+   "confianca": 92.09819793701172
+  },
+  {
+   "texto": "11645        ESPUEMANTE FREIXENET ROYAL BRUT 750 ML                     UN        59.00                       2.00     0.00 8410036810115      o",
+   "confianca": 89.301513671875
+  },
+  {
+   "texto": "11644          ESPUEMANTE FREIXENET ROYAL BRUT ROSE 750                        UN          64.00                             4.00      0.00 8410036810139        o",
+   "confianca": 88.35542297363281
+  },
+  {
+   "texto": "Total Sub. Seção: 1               123.000",
+   "confianca": 96.60086822509766
+  },
+  {
+   "texto": "Total Seção: 13               123.000",
+   "confianca": 96.82758331298828
+  },
+  {
+   "texto": "Seção: 0043-VINHOS INTERNACIONAIS (A)",
+   "confianca": 92.08375549316406
+  },
+  {
+   "texto": "Sub Seção : 0001 - ACOUGUE",
+   "confianca": 92.09819793701172
+  },
+  {
+   "texto": "11305           VINHO MILLA CALA TT 750ML                                                    UN             4.00                                0.00       0.00 7804643980285         o",
+   "confianca": 88.5601806640625
+  },
+  {
+   "texto": "Total Sub. Seção: 1                  4.000",
+   "confianca": 96.52471160888672
+  },
+  {
+   "texto": "Sub Seção : 0036 - ARGENTINOS",
+   "confianca": 93.92035675048828
+  },
+  {
+   "texto": "10290         VINHO LUIGI BOSCA DE SANGRE MALBEC D.O.C                        UN           9.00                           1.00      0.00 7791203000142        o",
+   "confianca": 88.97650909423828
+  },
+  {
+   "texto": "Total Sub. Seção: 36                   9.000",
+   "confianca": 96.64358520507812
+  },
+  {
+   "texto": "Sub Seção : 0037 - CHILENOS",
+   "confianca": 93.76922607421875
+  },
+  {
+   "texto": "11303          VINHO SEA OAKS PINOT NOIR 750 ML                                      UN            8.00                              1.00      0.00 7802940054425        o",
+   "confianca": 89.20764923095703
+  },
+  {
+   "texto": "Total Sub. Seção: 37                   8.000",
+   "confianca": 96.06427001953125
+  },
+  {
+   "texto": "Sub Seção : 0040 - ITALIANO",
+   "confianca": 92.85334014892578
+  },
+  {
+   "texto": "11302          VINHO BORGORO PINOT GRIGIO 750 ML                                  UN           6.00                             0.00      0.00 8008738009090        o",
+   "confianca": 88.17182922363281
+  },
+  {
+   "texto": "11424          VINHO BORGORO SANGIOVENSE 750 ML                                   UN           11.00                               0.00      0.00 8008738009113         o",
+   "confianca": 88.8145523071289
+  },
+  {
+   "texto": "11304        VINHO PRIMITIVO DI MANDURIA POGGIO MARU                     UN          4.00                          1.00     0.00 8011510020503       o",
+   "confianca": 85.75106811523438
+  },
+  {
+   "texto": "Total Sub. Seção: 40                    21.000",
+   "confianca": 96.4600601196289
+  },
+  {
+   "texto": "Sub Seção : 0038 - PORTUGUÊS",
+   "confianca": 94.01488494873047
+  },
+  {
+   "texto": "11016          VINHO PESCADA ORIGINAL ROSE 750ML                                   UN          10.00                              8.00      0.00 5600293793488        o",
+   "confianca": 87.91815185546875
+  },
+  {
+   "texto": "11301          VINHO CASAL MENDES ROSE 750ML                                        UN          32.00                              1.00      0.00 5601213184867        o",
+   "confianca": 88.5562973022461
+  },
+  {
+   "texto": "10982          VINHO DA PIPA BRANCO FRISANTE 750ML                                UN          42.00                             3.00      0.00 5601271322003        o",
+   "confianca": 89.21987915039062
+  },
+  {
+   "texto": "10471          VINHO DA PIPA ROSE FRISANTE 750ML                                    UN          40.00                             1.00      0.00 5601271311007        o",
+   "confianca": 88.94782257080078
+  },
+  {
+   "texto": "10985          VINHO VERDE BRANCO PESCADA ORIGINAL                              UN          13.00                             2.00      0.00 5600293793235        o",
+   "confianca": 89.36492156982422
+  },
+  {
+   "texto": "Total Sub. Seção: 38                137.000",
+   "confianca": 96.21184539794922
+  },
+  {
+   "texto": "Sub Seção : 0041 - SUL-AFRICANO",
+   "confianca": 92.38074493408203
+  },
+  {
+   "texto": "11299          VINHO STORMHOEK PINOTAGE 750 ML                                   UN          10.00                             0.00      0.00 6009710586051        o",
+   "confianca": 88.4729232788086
+  },
+  {
+   "texto": "11298          VINHO STORMHOEK SHIRAZ 750 ML                                         UN            8.00                               1.00      0.00 6009710585986        o",
+   "confianca": 88.12901306152344
+  },
+  {
+   "texto": "Total Sub. Seção: 41                  18.000",
+   "confianca": 96.69206237792969
+  },
+  {
+   "texto": "Total Seção: 43                197.000",
+   "confianca": 96.74176025390625
+  },
+  {
+   "texto": "Seção: 0029-VINHOSTODOS",
+   "confianca": 89.47836303710938
+  },
+  {
+   "texto": "Sub Seção : 0026 - VINHOS IMPORTADOS",
+   "confianca": 94.12326049804688
+  },
+  {
+   "texto": "4139           VINHO CHI. VIEJO FEO RES PINOT NOIR 750ML                          UN          12.00                            3.00      0.00 7808726906629        o",
+   "confianca": 88.90513610839844
+  },
+  {
+   "texto": "6142           VINHO DA PIPA TINTO RED WINE 750ML                                   UN          30.00                            12.00      0.00 5601271005210        o",
+   "confianca": 89.66754150390625
+  },
+  {
+   "texto": "6144           VINHO DA PIPA WHITE WINE 750ML                                        UN          24,00                             12.00      0.00 5601271005203        o",
+   "confianca": 88.49319458007812
+  },
+  {
+   "texto": "3561          VINHO FINCA LA LINDA MALBEC(LUIGI| BOSCA)                         UN         17.00                         12.00      0.00 7791203000517       o",
+   "confianca": 84.1256332397461
+  },
+  {
+   "texto": "11425        VINHO IGP PRINCIPAUTE D'ORANGE 750 ML                         UN         12.00                          0.00     0.00 3436960072790       o",
+   "confianca": 89.286376953125
+  },
+  {
+   "texto": "10983          VINHO INTIMISTA ROSE 750 ML                                             UN          32.00                            12.00      0.00 5600781953172        o",
+   "confianca": 89.50597381591797
+  },
+  {
+   "texto": "6199            VINHO INTIMISTA TINTO 750 ML                                              UN           15.00                               5.00      0.00 5302417103463         o",
+   "confianca": 89.09151458740234
+  },
+  {
+   "texto": "10984          VINHO INTIMISTA WHITE BRANCO 750 ML                                UN          18.00                            15.00      0.00 5600781952960        o",
+   "confianca": 90.58405303955078
+  },
+  {
+   "texto": "6011            VINHO JULIA FLORISTA BRANCO 750 ML                                    UN          38.00                              7.00      0.00 5601996132567        o",
+   "confianca": 88.92945861816406
+  },
+  {
+   "texto": "11463          VINHO JULIA FLORISTA RESRVA TINTO 750 ML                           UN          12.00                              1.00      0.00 5660199630005        o",
+   "confianca": 88.82049560546875
+  },
+  {
+   "texto": "8407            VINHO JULIA FLORISTA ROSE 750 ML                                        UN          39.00                              5.00      0.00 5601996300300         o",
+   "confianca": 89.81159973144531
+  },
+  {
+   "texto": "3722        VINHO JULIA FLORISTA TINTO MEIO SECO 750 ML                 UN       15.00                    44,00    0.00 5601996546340      o",
+   "confianca": 90.07180786132812
+  },
+  {
+   "texto": "3555        VINHO LA LINDA CABERNET SAUVIGNON 2022                    UN        9.00                     8.00    0.00 7791203000852      o",
+   "confianca": 89.33688354492188
+  },
+  {
+   "texto": "4131            VINHO LA LINDA CHARDONNAY 2022 750ML                              UN          23.00                              1.00      0.00 7791203003365        o",
+   "confianca": 87.74396514892578
+  },
+  {
+   "texto": "4017        VINHO LA LINDA TORRENTES 750ML                             UN       27.00                      1.00    0.00 7791203003372      o",
+   "confianca": 87.41696166992188
+  },
+  {
+   "texto": "2936          VINHO LUIGI BOSCA CABERNET SAUVIGNON                            UN         31.00                           0.00      0.00 7791203001248        o",
+   "confianca": 88.40879821777344
+  },
+  {
+   "texto": "3531           VINHO PORTA 6 2020 750 ML                                               UN          28.00                            12.00      0.00 5601996547897        o",
+   "confianca": 89.73267364501953
+  }
+ ],
+ [
+  {
+   "texto": "Data: 30/10/2026 12:59:46",
+   "confianca": 81.1026611328125
+  },
+  {
+   "texto": "Página : 0002",
+   "confianca": 93.97955322265625
+  },
+  {
+   "texto": "01 - LOJA",
+   "confianca": 94.82572174072266
+  },
+  {
+   "texto": "Relatório de Saldos de Estoque Fornecedor (000001 - DISTRIBUIDORA EXEMPLO LTDA)",
+   "confianca": 95.23652648925781
+  },
+  {
+   "texto": "Produto      Descrição do Produto                                                       UN        Quant                         Mínimo     Max EAN                         Saldo",
+   "confianca": 96.22509002685547
+  },
+  {
+   "texto": "6135           VINHO PORTA 6 RESERVA TINTO 750ML                                 UN         22.00                          12.00      0.00 5601996154583        o",
+   "confianca": 88.45938873291016
+  },
+  {
+   "texto": "3719           VINHO PORTA 6 ROSE WINE 2020 750 ML                                UN          26.00                           12.00      0.00 5601996023780        o",
+   "confianca": 90.46768188476562
+  },
+  {
+   "texto": "3720           VINHO PORTA 6 WHITE WINE 2020 750 ML                               UN          11.00                              1.00      0.00 5601996355485        o",
+   "confianca": 91.02497100830078
+  },
+  {
+   "texto": "6223          VINHO RUBEN E FLORA GRAN RES                                    UN         14.00                         1.00     0.00 7808726903222       o",
+   "confianca": 88.725341796875
+  },
+  {
+   "texto": "11506          VINHO SWEET CASAL MENDES 750ML                                    UN          24,00                             2.00      0.00 5601213215363        o",
+   "confianca": 87.62490844726562
+  },
+  {
+   "texto": "6224          VINHO TELMO E RUTH GRAN RES                                      UN         21.00                        12.00     0.00 7808726905653       o",
+   "confianca": 89.51824951171875
+  },
+  {
+   "texto": "6996           VINHO VERDE CASAL MENDES 750ML                                   UN          31.00                            2.00      0.00 5601213188216        o",
+   "confianca": 88.1341552734375
+  },
+  {
+   "texto": "11525         VINHO VIK A LIMITED EDITION CABERNET                               UN         12.00                           0.00      0.00 7804643980575        o",
+   "confianca": 87.58880615234375
+  },
+  {
+   "texto": "Total Sub. Seção: 26                543.000",
+   "confianca": 96.54222106933594
+  },
+  {
+   "texto": "Total Seção: 29                543.000",
+   "confianca": 96.32853698730469
+  },
+  {
+   "texto": "Total Geral:                  863.000",
+   "confianca": 95.98583984375
+  },
+  {
+   "texto": "* ; Produtos Inativos",
+   "confianca": 90.72000885009766
+  }
+ ]
+]

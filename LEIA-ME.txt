@@ -1,0 +1,29 @@
+ESTOQUE FÁCIL
+=============
+
+Como usar
+---------
+1. No FDC, gere o relatório de estoque e salve em PDF, como você já faz.
+2. Dê dois cliques em  EstoqueFacil.exe
+3. Clique em "Escolher o PDF do estoque…" e selecione o arquivo.
+   (Atalho: arrastar o PDF em cima do EstoqueFacil.exe também funciona.)
+4. Espere a barrinha terminar. A planilha .xlsx é criada na mesma pasta do PDF
+   e abre sozinha.
+
+Antes de enviar, olhe a mensagem que aparece na janela:
+  - "Conferência OK"  -> as somas bateram com os totais do relatório. Pode enviar.
+  - "Confira antes de enviar" -> alguma linha pode ter sido lida errada. Elas ficam
+    pintadas de amarelo (linha) ou vermelho (total) na planilha. Corrija à mão.
+
+Personalizar
+------------
+Na primeira vez, o programa cria o arquivo  configuracao.ini  ao lado dele.
+Abra com o Bloco de Notas pra mudar nomes de colunas, tirar colunas, ligar o
+envio pelo WhatsApp etc. Se estragar, apague o arquivo: ele é recriado.
+
+Se o Windows avisar "O Windows protegeu o computador"
+-----------------------------------------------------
+É normal em programas novos que não têm assinatura paga. Clique em
+"Mais informações" e depois em "Executar assim mesmo".
+
+Não precisa de internet para converter o PDF.

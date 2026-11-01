@@ -1,0 +1,12 @@
+{
+  "name": "Estoque Fácil",
+  "short_name": "Estoque Fácil",
+  "description": "Transforma o PDF de estoque do FDC em planilha Excel.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbf6f3",
+  "theme_color": "#7a1f3d",
+  "lang": "pt-BR",
+  "icons": [{ "src": "icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
