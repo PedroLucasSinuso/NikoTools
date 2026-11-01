@@ -2,6 +2,8 @@
 
 Coleção de ferramentas de uso pessoal, pequenas e independentes.
 
+**Site:** https://pedrolucassinuso.github.io/NikoTools/
+
 ## Ferramentas
 
 ### Estoque → planilha
@@ -11,7 +13,7 @@ em `.xlsx`, com conferência automática das somas contra os totais do próprio 
 
 | Versão | Pasta | Como roda |
 |---|---|---|
-| Web | [`web/`](web/README.md) | Site estático. OCR no navegador, nada é enviado pra servidor. |
+| Web | [`web/`](web/README.md) ([abrir](https://pedrolucassinuso.github.io/NikoTools/)) | Site estático. OCR no navegador, nada é enviado pra servidor. |
 | Desktop | raiz do repositório (`estoque_facil/`) | Python + Tkinter, empacotável em `.exe` com PyInstaller. |
 
 Detalhes de cada uma nos respectivos READMEs. Em resumo:

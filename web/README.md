@@ -2,6 +2,7 @@
 
 Site estático (React + Tailwind + TypeScript) que converte o PDF "Saldos de Estoque" do FDC em `.xlsx`,
 **tudo dentro do navegador**: o PDF não sai do computador.
+Online em https://pedrolucassinuso.github.io/NikoTools/
 
 ```
 PDF ──pdf.js──▶ imagem 200dpi ──limpeza──▶ Tesseract (por, WASM) ──▶ parser ──▶ ExcelJS ──▶ .xlsx
