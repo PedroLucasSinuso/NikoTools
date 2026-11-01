@@ -92,7 +92,7 @@ function VisualizadorPdf({ imagens }: { imagens: string[] }) {
   )
 }
 
-const LARGURA_CH: Record<string, number> = { produto: 8, descricao: 34, un: 5, quant: 8, minimo: 8, max: 8, ean: 15, saldo: 9 }
+const LARGURA_CH: Record<string, number> = { produto: 10, descricao: 30, un: 6, quant: 9, minimo: 10, max: 9, ean: 17, saldo: 10 }
 const letra = (i: number) => String.fromCharCode(65 + i)
 
 function PreviaPlanilha({ rel, cfg }: { rel: Relatorio; cfg: Config }) {
