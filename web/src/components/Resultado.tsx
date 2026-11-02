@@ -23,7 +23,8 @@ export function Resultado({ arquivoPdf, rel, cfg, imagens, onOutro, onAjustes }:
   const [aviso, setAviso] = useState('')
   const nome = nomeDoArquivo(arquivoPdf)
   const qtd = produtos(rel).length
-  const precisaConferir = rel.avisos.length > 0
+  const precisaConferir = rel.avisos.some((a) => a.gravidade === 'erro')
+  const observacoes = rel.avisos.filter((a) => a.gravidade === 'atencao')
   const texto = zap.mensagem(cfg, rel)
 
   // Já deixa a planilha pronta: o compartilhar do celular exige que o toque chame direto (sem esperar).
@@ -64,10 +65,17 @@ export function Resultado({ arquivoPdf, rel, cfg, imagens, onOutro, onAjustes }:
         {precisaConferir && (
           <div className="rounded-xl border border-warn-line bg-warn-bg p-4 text-warn">
             <p className="font-semibold">As linhas em amarelo (ou o total em vermelho) merecem uma olhadinha:</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
-              {rel.avisos.map((a, i) => <li key={i}>{a.texto}</li>)}
-            </ul>
+            <Lista avisos={rel.avisos} />
             <p className="mt-2 text-sm">Compare com o PDF logo abaixo. Dá pra baixar mesmo assim e corrigir direto no Excel.</p>
+          </div>
+        )}
+        {!precisaConferir && observacoes.length > 0 && (
+          <div className="rounded-xl border border-line bg-soft p-4">
+            <p className="font-semibold">
+              {observacoes.length === 1 ? '1 linha' : `${observacoes.length} linhas`} com leitura menos certa, em amarelo na planilha.
+            </p>
+            <p className="text-sm text-muted">As quantidades estão certas (as somas batem). Vale só olhar o nome ou o EAN:</p>
+            <Lista avisos={observacoes} />
           </div>
         )}
 
@@ -97,5 +105,15 @@ export function Resultado({ arquivoPdf, rel, cfg, imagens, onOutro, onAjustes }:
         </button>
       </div>
     </div>
+  )
+}
+
+function Lista({ avisos }: { avisos: Relatorio['avisos'] }) {
+  const max = 6
+  return (
+    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+      {avisos.slice(0, max).map((a, i) => <li key={i}>{a.texto}</li>)}
+      {avisos.length > max && <li>e mais {avisos.length - max} (as linhas estão marcadas na planilha)</li>}
+    </ul>
   )
 }

@@ -1,11 +1,9 @@
-/** PDF -> imagem (pdf.js) -> texto (Tesseract, português). Tudo roda no navegador, nada é enviado. */
-import * as pdfjs from 'pdfjs-dist'
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+/** PDF -> imagem (PDFium) -> texto (Tesseract, português). Tudo roda no navegador, nada é enviado. */
+import { PDFiumLibrary } from '@hyzyla/pdfium'
+import pdfiumWasm from '@hyzyla/pdfium/pdfium.wasm?url'
 import { createWorker, OEM, PSM } from 'tesseract.js'
 import { limpaPagina } from './preprocesso'
 import type { LinhaOCR } from './types'
-
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
 /** 200 dpi: abaixo disso o Tesseract erra bastante nesta fonte fina. */
 const DPI = 200
@@ -41,14 +39,16 @@ function previa(origem: HTMLCanvasElement): Promise<string> {
 
 export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void): Promise<LeituraPdf> {
   onProgresso({ etapa: 'preparando', pagina: 0, total: 0, fracao: 0 })
-  const tarefa = pdfjs.getDocument({ data: new Uint8Array(await arquivo.arrayBuffer()) })
-  let pdf: pdfjs.PDFDocumentProxy
+  const biblioteca = await PDFiumLibrary.init({ wasmUrl: new URL(pdfiumWasm, document.baseURI).href })
+  let pdf: Awaited<ReturnType<typeof biblioteca.loadDocument>>
   try {
-    pdf = await tarefa.promise
+    pdf = await biblioteca.loadDocument(new Uint8Array(await arquivo.arrayBuffer()))
   } catch (e) {
-    if ((e as { name?: string }).name === 'PasswordException') throw new Error('Este PDF tem senha.')
+    biblioteca.destroy()
+    if (/password/i.test(String((e as Error)?.message))) throw new Error('Este PDF tem senha.')
     throw new Error('Não consegui abrir este arquivo como PDF.')
   }
+  const total = pdf.getPageCount()
 
   let paginaAtual = 0
   const worker = await createWorker('por', OEM.LSTM_ONLY, {
@@ -58,7 +58,7 @@ export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void):
     gzip: true,
     logger: (m) => {
       if (m.status === 'recognizing text')
-        onProgresso({ etapa: 'lendo', pagina: paginaAtual, total: pdf.numPages, fracao: (paginaAtual - 1 + m.progress) / pdf.numPages })
+        onProgresso({ etapa: 'lendo', pagina: paginaAtual, total, fracao: (paginaAtual - 1 + m.progress) / total })
     },
   })
   try {
@@ -66,28 +66,29 @@ export async function lePdf(arquivo: File, onProgresso: (p: Progresso) => void):
     await worker.setParameters({ preserve_interword_spaces: '1', tessedit_pageseg_mode: PSM.SINGLE_BLOCK })
     const paginas: LinhaOCR[][] = []
     const imagens: string[] = []
-    for (let n = 1; n <= pdf.numPages; n++) {
-      paginaAtual = n
-      onProgresso({ etapa: 'lendo', pagina: n, total: pdf.numPages, fracao: (n - 1) / pdf.numPages })
-      const pagina = await pdf.getPage(n)
-      const viewport = pagina.getViewport({ scale: DPI / 72 })
+    for (const pagina of pdf.pages()) {
+      paginaAtual = pagina.number
+      onProgresso({ etapa: 'lendo', pagina: paginaAtual, total, fracao: (paginaAtual - 1) / total })
+      const img = await pagina.render({ scale: DPI / 72, render: 'bitmap', colorSpace: 'RGBA' })
       const canvas = document.createElement('canvas')
-      canvas.width = Math.ceil(viewport.width)
-      canvas.height = Math.ceil(viewport.height)
-      await pagina.render({ canvas, viewport }).promise
-      imagens.push(await previa(canvas))
+      canvas.width = img.width
+      canvas.height = img.height
       const ctx = canvas.getContext('2d', { willReadFrequently: true })!
-      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const pixels = new ImageData(new Uint8ClampedArray(img.data), img.width, img.height)
+      ctx.putImageData(pixels, 0, 0)
+      imagens.push(await previa(canvas))
       limpaPagina(pixels)
       ctx.putImageData(pixels, 0, 0)
       const { data } = await worker.recognize(canvas)
       paginas.push(data.lines.map((l) => ({ texto: l.text, confianca: l.confidence })))
       canvas.width = canvas.height = 0 // libera memória
+      pagina.close()
     }
-    onProgresso({ etapa: 'lendo', pagina: pdf.numPages, total: pdf.numPages, fracao: 1 })
+    onProgresso({ etapa: 'lendo', pagina: total, total, fracao: 1 })
     return { paginas, imagens }
   } finally {
     await worker.terminate()
-    await tarefa.destroy()
+    pdf.destroy()
+    biblioteca.destroy()
   }
 }

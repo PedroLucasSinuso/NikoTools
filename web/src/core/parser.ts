@@ -7,11 +7,10 @@ import type { Aviso, Linha, LinhaOCR, Relatorio } from './types'
 /** Abaixo disso (0–100) a linha é marcada pra conferir. */
 export const CONFIANCA_MINIMA = 75
 
-const NUM = String.raw`-?[\dOol]+[.,][\dOo]{2,3}`
+const NUM = String.raw`-?[\dOol]+[.,][\dOo]{2}`
 const RE_PRODUTO = new RegExp(
-  String.raw`^(?<cod>\d{1,7})(?<inativo>\*)?\s*(?<desc>.+?)\s+(?<un>[A-Za-z]{1,3})` +
-    String.raw`\s+(?<q>${NUM})\s+(?<mi>${NUM})\s+(?<mx>${NUM})` +
-    String.raw`(?:\s*(?<ean>[\dOo]{8,14}))?[^\d]*$`,
+  String.raw`^(?<cod>\d{1,7})(?<inativo>\*)?\s*(?<desc>.+?)\s+(?<un>\S{1,3})` +
+    String.raw`\s+(?<q>${NUM})\s+(?<mi>${NUM})\s+(?<mx>${NUM})(?<resto>.*)$`,
 )
 const RE_TOTAL_SUB = /^total\s*sub\W*se\w*\s*:?\s*(\d+)\s+(-?[\dOol.,]+)\s*$/
 const RE_TOTAL_SECAO = /^total\s*se\w*\s*:?\s*(\d+)\s+(-?[\dOol.,]+)\s*$/
@@ -31,9 +30,32 @@ export function numero(s: string): number | null {
   return t !== '' && Number.isFinite(n) ? n : null
 }
 
-/** "75O ML" -> "750 ML": o OCR confunde O e 0 colado em dígitos. */
+/** Corrige confusões comuns do OCR: "75O ML" -> "750 ML", "SOML" -> "50ML". */
 function limpaDescricao(s: string): string {
-  return s.replace(/\s+/g, ' ').trim().replace(/(?<=\d)O(?=\d|\s|ML\b|L\b|$)/g, '0')
+  return s
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/(?<=\d)O(?=\d|\s|ML\b|L\b|$)/g, '0')
+    .replace(/(?<=\s)[S5]OML\b/g, '50ML')
+}
+
+const DIGITOS_OCR: Record<string, string> = { O: '0', o: '0', D: '0', Q: '0', l: '1', I: '1', S: '5', B: '8', Z: '2' }
+
+/**
+ * Lê o EAN que sobra no fim da linha. Produtos sem código de barras saem com o código interno
+ * preenchido com zeros (0000000003614), que o OCR costuma embaralhar ("0000000NO03614"): como o fim
+ * bate com o código do produto, reconstruímos. Devolve duvida=true se sobrou letra sem explicação.
+ */
+function leEan(resto: string, cod: string): { ean: string; duvida: boolean } {
+  const tok = resto.split(/\s+/).map((t) => t.replace(/[^0-9A-Za-z]/g, '')).find((t) => t.length >= 6)
+  if (!tok) return { ean: '', duvida: false }
+  if (tok.endsWith(cod)) {
+    const prefixo = tok.slice(0, tok.length - cod.length)
+    const zeros = [...prefixo].filter((c) => c === '0' || c === 'O' || c === 'o').length
+    if (prefixo.length >= 3 && zeros * 2 >= prefixo.length) return { ean: cod.padStart(13, '0'), duvida: false }
+  }
+  const ean = [...tok].map((c) => DIGITOS_OCR[c] ?? c).join('')
+  return /^\d+$/.test(ean) ? { ean, duvida: false } : { ean: ean.replace(/\D/g, ''), duvida: true }
 }
 
 function fmt(n: number): string {
@@ -137,14 +159,15 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
       if ((m = texto.match(RE_PRODUTO)) && m.groups) {
         const g = m.groups
         const q = numero(g.q)
-        const ean = (g.ean ?? '').replace(/[Oo]/g, '0')
+        const { ean, duvida } = leEan(g.resto, g.cod)
         const descricao = limpaDescricao(g.desc) + (g.inativo ? ' *' : '')
         const notas: string[] = []
         if (bruta.confianca < CONFIANCA_MINIMA) notas.push('leitura com baixa confiança')
-        if (ean && ![8, 12, 13, 14].includes(ean.length)) notas.push(`EAN com ${ean.length} dígitos`)
+        if (duvida) notas.push('EAN duvidoso')
+        else if (ean && ![8, 12, 13, 14].includes(ean.length)) notas.push(`EAN com ${ean.length} dígitos`)
         if (q === null) notas.push('quantidade ilegível')
         const prod: Linha = {
-          ...vazia('produto'), produto: g.cod, descricao, un: g.un.toUpperCase(), quant: q,
+          ...vazia('produto'), produto: g.cod, descricao, un: /^[A-Za-z]{1,3}$/.test(g.un) ? g.un.toUpperCase() : 'UN', quant: q,
           minimo: numero(g.mi), max: numero(g.mx), ean, conferir: notas.length > 0, nota: notas.join('; '),
         }
         rel.linhas.push(prod)

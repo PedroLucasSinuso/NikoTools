@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fixture from './fixtures/estoque.json'
+import fixtureGrande from './fixtures/estoque-grande.json'
 import { interpreta, produtos } from '../src/core/parser'
 import type { LinhaOCR } from '../src/core/types'
 
@@ -67,5 +68,30 @@ describe('robustez', () => {
     const p = paginas()
     p[0] = p[0].filter((l) => !/Total Sub\. Seção: 36/.test(l.texto)).map((l) => ({ ...l, texto: l.texto.replace('21.000', '21.000').replace(' 6.00 ', ' 8.00 ') }))
     expect(interpreta(p).avisos.some((a) => a.gravidade === 'erro')).toBe(true)
+  })
+})
+
+describe('relatório grande (15 páginas, 484 produtos)', () => {
+  const grande = () => interpreta(structuredClone(fixtureGrande) as LinhaOCR[][])
+
+  it('lê tudo e todos os totais conferem', () => {
+    const rel = grande()
+    expect(rel.avisos.filter((a) => a.gravidade === 'erro')).toEqual([])
+    expect(produtos(rel)).toHaveLength(484)
+    const geral = rel.linhas.at(-1)!
+    expect(geral.tipo).toBe('geral')
+    expect(geral.quant).toBe(produtos(rel).reduce((s, p) => s + (p.quant ?? 0), 0))
+  })
+
+  it('reconstrói o EAN interno (zeros + código) quando o OCR embaralha', () => {
+    const ps = produtos(grande())
+    const p = ps.find((x) => x.produto === '3614')!
+    expect(p.ean).toBe('0000000003614')
+    expect(ps.find((x) => x.produto === '198')!.ean).toBe('0000000000198')
+    expect(ps.every((x) => x.ean === '' || /^\d+$/.test(x.ean))).toBe(true)
+  })
+
+  it('corrige "SOML" para "50ML" na descrição', () => {
+    expect(produtos(grande()).some((p) => /\bSOML\b/.test(p.descricao))).toBe(false)
   })
 })
