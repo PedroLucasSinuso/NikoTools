@@ -41,11 +41,11 @@ describe('relatório de exemplo (OCR real do Tesseract)', () => {
     expect(rel.linhas.some((l) => l.tipo === 'sub' && l.conferir)).toBe(true)
   })
 
-  it('não perde linha que não consegue separar: marca pra conferir', () => {
+  it('não perde linha com quantidade ilegível: marca pra conferir e a soma avisa', () => {
     const p = paginas()
     p[0] = p[0].map((l) => ({ ...l, texto: l.texto.replace('59.00', '59,0,0') }))
     const rel = interpreta(p)
-    expect(rel.linhas.some((l) => l.conferir && l.nota === 'linha não reconhecida')).toBe(true)
+    expect(rel.linhas.some((l) => l.conferir && l.quant === null)).toBe(true)
     expect(rel.avisos.some((a) => a.gravidade === 'erro')).toBe(true)
   })
 
@@ -133,5 +133,59 @@ describe('bordas da tabela', () => {
     const r = interpreta([pagina])
     expect(r.avisos).toEqual([])
     expect(r.linhas.map((l) => l.tipo)).toEqual(['produto', 'sub', 'secao', 'geral'])
+  })
+})
+
+describe('layouts que o parser nunca viu', () => {
+  const pagina = (cabecalho: string, ...linhas: string[]): LinhaOCR[] =>
+    [cabecalho, ...linhas].map((texto) => ({ texto, confianca: 92 }))
+
+  it('coluna extra depois de Quant, lida pelo cabeçalho', () => {
+    const rel = interpreta([
+      pagina(
+        'Produto Descrição do Produto UN Ult.Ent Quant Custo Q.X Mínimo Max EAN Saldo',
+        '123 CACHACA TESTE 700 ML UN 5.00 7.00 9.50 3 1.00 0.00 7891234567895 o',
+        'Total Sub. Seção: 1 7.000',
+        'Total Seção: 1 7.000',
+        'Total Geral: 7.000',
+      ),
+    ])
+    expect(rel.avisos).toEqual([])
+    const p = produtos(rel)[0]
+    expect([p.descricao, p.quant, p.minimo, p.max, p.ean]).toEqual(['CACHACA TESTE 700 ML', 7, 1, 0, '7891234567895'])
+  })
+
+  it('cabeçalho com grafia errada pelo OCR não muda a contagem de colunas', () => {
+    const rel = interpreta([
+      pagina(
+        'Produto Descricao do Produto UN Quant Mínirno — Mxa EAN Saldo',
+        '45 VINHO TESTE UN 12.00 2.00 0.00 7891234567895 o',
+        'Total Sub. Seção: 1 12.000',
+      ),
+    ])
+    expect(produtos(rel)[0].quant).toBe(12)
+    expect(rel.avisos).toEqual([])
+  })
+
+  it('produto sem EAN e sem unidade legível', () => {
+    const rel = interpreta([
+      pagina('Produto Descrição UN Quant Mínimo Max EAN Saldo', '77 BALDE DE GELO [9 4.00 1.00 0.00', 'Total Sub. Seção: 1 4.000'),
+    ])
+    const p = produtos(rel)[0]
+    expect([p.quant, p.ean, p.un]).toEqual([4, '', 'UN'])
+    expect(rel.avisos).toEqual([])
+  })
+
+  it('não confunde linha de texto (descrição quebrada) com produto', () => {
+    const rel = interpreta([
+      pagina(
+        'Produto Descrição UN Quant Mínimo Max EAN Saldo',
+        '10 WHISKY TESTE UN 3.00 1.00 0.00 7891234567895',
+        '750ML + COPO',
+        'Total Sub. Seção: 1 3.000',
+      ),
+    ])
+    expect(produtos(rel)).toHaveLength(1)
+    expect(produtos(rel)[0].descricao).toBe('WHISKY TESTE 750ML + COPO')
   })
 })
