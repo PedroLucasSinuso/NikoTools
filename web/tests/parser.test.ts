@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fixture from './fixtures/estoque.json'
 import fixtureGrande from './fixtures/estoque-grande.json'
+import fixtureWhisky from './fixtures/estoque-whisky.json'
 import { interpreta, produtos } from '../src/core/parser'
 import type { LinhaOCR } from '../src/core/types'
 
@@ -93,5 +94,44 @@ describe('relatório grande (15 páginas, 484 produtos)', () => {
 
   it('corrige "SOML" para "50ML" na descrição', () => {
     expect(produtos(grande()).some((p) => /\bSOML\b/.test(p.descricao))).toBe(false)
+  })
+})
+
+describe('variante com Ult-Ent, data e Q. CX (descrição em várias linhas)', () => {
+  const rel = () => interpreta(structuredClone(fixtureWhisky) as LinhaOCR[][])
+
+  it('lê as colunas certas e as somas conferem', () => {
+    const r = rel()
+    expect(r.avisos.filter((a) => a.gravidade === 'erro')).toEqual([])
+    const ps = produtos(r)
+    expect(ps.length).toBeGreaterThan(70)
+    expect(r.linhas.at(-1)!.quant).toBe(ps.reduce((s, p) => s + (p.quant ?? 0), 0))
+    const p = ps.find((x) => x.produto === '10585')!
+    expect([p.quant, p.minimo, p.max, p.ean]).toEqual([2, 0, 0, '7896053801502'])
+    expect(ps.find((x) => x.produto === '10188')!.quant).toBe(23)
+  })
+
+  it('junta a descrição que quebrou em outra linha', () => {
+    const p = produtos(rel()).find((x) => x.produto === '10585')!
+    expect(p.descricao).toBe('WHISKY BUFFALO TRACE 750ML + COPO')
+  })
+
+  it('junta o EAN que o OCR partiu por espaço', () => {
+    const p = produtos(rel()).find((x) => x.produto === '4097')
+    if (p) expect(p.ean).toMatch(/^\d{13}$/)
+  })
+})
+
+describe('bordas da tabela', () => {
+  it('reconhece total de seção com barra no fim da linha', () => {
+    const pagina: LinhaOCR[] = [
+      { texto: '11173 BISCOITO X UN 6.00 4.00 0.00 8000350007928 o', confianca: 90 },
+      { texto: 'Total Sub. Seção: 136 6.000', confianca: 95 },
+      { texto: '| Total Seção: 33 6.000 |', confianca: 95 },
+      { texto: 'Total Geral: 6.000', confianca: 95 },
+    ]
+    const r = interpreta([pagina])
+    expect(r.avisos).toEqual([])
+    expect(r.linhas.map((l) => l.tipo)).toEqual(['produto', 'sub', 'secao', 'geral'])
   })
 })

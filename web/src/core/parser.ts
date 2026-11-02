@@ -12,6 +12,12 @@ const RE_PRODUTO = new RegExp(
   String.raw`^(?<cod>\d{1,7})(?<inativo>\*)?\s*(?<desc>.+?)\s+(?<un>\S{1,3})` +
     String.raw`\s+(?<q>${NUM})\s+(?<mi>${NUM})\s+(?<mx>${NUM})(?<resto>.*)$`,
 )
+/** Variante do relatório com colunas extras: Ult-Ent, Dt Ent. (às vezes colada) e Q. CX antes do Mínimo. */
+const RE_PRODUTO_ENT = new RegExp(
+  String.raw`^(?<cod>\d{1,7})(?<inativo>\*)?\s*(?<desc>.+?)\s+(?<un>\S{1,3})` +
+    String.raw`\s+(?<ult>${NUM})\s*(?:(?<data>\d{2}/\d{2}/\d{4})\s*)?(?<q>${NUM})\s+(?<qcx>\S+)` +
+    String.raw`\s+(?<mi>${NUM})\s+(?<mx>${NUM})(?<resto>.*)$`,
+)
 const RE_TOTAL_SUB = /^total\s*sub\W*se\w*\s*:?\s*(\d+)\s+(-?[\dOol.,]+)\s*$/
 const RE_TOTAL_SECAO = /^total\s*se\w*\s*:?\s*(\d+)\s+(-?[\dOol.,]+)\s*$/
 const RE_TOTAL_GERAL = /^total\s*geral\s*:?\s*(-?[\dOol.,]+)\s*$/
@@ -47,8 +53,8 @@ const DIGITOS_OCR: Record<string, string> = { O: '0', o: '0', D: '0', Q: '0', l:
  * bate com o código do produto, reconstruímos. Devolve duvida=true se sobrou letra sem explicação.
  */
 function leEan(resto: string, cod: string): { ean: string; duvida: boolean } {
-  const tok = resto.split(/\s+/).map((t) => t.replace(/[^0-9A-Za-z]/g, '')).find((t) => t.length >= 6)
-  if (!tok) return { ean: '', duvida: false }
+  const tok = resto.split(/\s+/).map((t) => t.replace(/[^0-9A-Za-z]/g, '')).filter((t) => t.length >= 3).join('')
+  if (tok.length < 6) return { ean: '', duvida: false }
   if (tok.endsWith(cod)) {
     const prefixo = tok.slice(0, tok.length - cod.length)
     const zeros = [...prefixo].filter((c) => c === '0' || c === 'O' || c === 'o').length
@@ -73,6 +79,8 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
   let grupo: number[] = [] // quantidades desde o último "Total Sub. Seção"
   let somaSecao = 0, somaGeral = 0
   let erroNaSecao = false
+  let ultimo: Linha | null = null // produto que pode receber linhas de continuação da descrição
+  let continuacoes = 0
 
   const aviso = (gravidade: Aviso['gravidade'], texto: string) => rel.avisos.push({ gravidade, texto })
 
@@ -95,9 +103,10 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
   }
 
   paginas.forEach((pagina, i) => {
+    ultimo = null
     for (const bruta of pagina) {
       // tira lixo de borda ("| 11645 ...") e normaliza espaços
-      const texto = bruta.texto.replace(/^[^\p{L}\p{N}*]+/u, '').replace(/\s+/g, ' ').trim()
+      const texto = bruta.texto.replace(/^[^\p{L}\p{N}*]+/u, '').replace(/[\s|_]+$/u, '').replace(/\s+/g, ' ').trim()
       const t = normaliza(texto)
       if (!t) continue
 
@@ -107,7 +116,8 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
         continue
       }
       if (t.startsWith('pagina') || t.startsWith('*') || t.includes('produtos inativos')) continue
-      if (t.startsWith('produto') && t.includes('saldo')) continue
+      if (t.includes('saldo') && t.includes('minimo')) continue
+      if (/^[\d\s,)]+$/.test(t) && (t.match(/,/g)?.length ?? 0) >= 5) continue // lista de códigos do filtro
       if (!rel.loja && !rel.linhas.length && /^\d+\s*-\s*\p{L}/u.test(texto) && !RE_PRODUTO.test(texto)) {
         rel.loja = texto
         continue
@@ -117,6 +127,7 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
         continue
       }
 
+      if (/^(total|sub\s*se|se\w*\s*:)/.test(t)) ultimo = null
       if ((m = t.match(RE_TOTAL_SUB))) {
         const lido = numero(m[2])
         // Se o OCR deixou passar o total de uma subseção anterior, as quantidades dessa subseção ainda estão no
@@ -156,7 +167,7 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
         continue
       }
 
-      if ((m = texto.match(RE_PRODUTO)) && m.groups) {
+      if ((m = texto.match(RE_PRODUTO_ENT) ?? texto.match(RE_PRODUTO)) && m.groups) {
         const g = m.groups
         const q = numero(g.q)
         const { ean, duvida } = leEan(g.resto, g.cod)
@@ -171,6 +182,8 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
           minimo: numero(g.mi), max: numero(g.mx), ean, conferir: notas.length > 0, nota: notas.join('; '),
         }
         rel.linhas.push(prod)
+        ultimo = prod
+        continuacoes = 0
         if (notas.length) aviso('atencao', `Produto ${prod.produto} (${descricao}): ${prod.nota}.`)
         grupo.push(q ?? 0)
         somaSecao += q ?? 0
@@ -178,11 +191,17 @@ export function interpreta(paginas: LinhaOCR[][]): Relatorio {
         continue
       }
 
+      // Descrição que quebrou em mais de uma linha: texto sem números, logo abaixo do produto.
+      if (ultimo && continuacoes < 3 && bruta.confianca >= 60 && /\p{L}{3}/u.test(texto) && !/\d[.,]\d{2}/.test(texto)) {
+        ultimo.descricao = limpaDescricao(`${ultimo.descricao} ${texto}`)
+        continuacoes++
+        continue
+      }
+
       // Parece produto (começa com código e tem números) mas não separou: não some, fica marcado.
       if (/^\d{3,}/.test(t) && /\d[.,]\d{2}/.test(t)) {
         rel.linhas.push({ ...vazia('produto'), produto: texto.split(' ')[0], descricao: texto, conferir: true, nota: 'linha não reconhecida' })
-        aviso('erro', `Página ${i + 1}: não consegui separar as colunas desta linha: "${texto}".`)
-        erroNaSecao = true
+        aviso('atencao', `Página ${i + 1}: não consegui ler esta linha direito: "${texto}".`)
       }
     }
   })
